@@ -1,0 +1,38 @@
+.chat-footer {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #ffffff;
+  border-top: 1px solid #ddd;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-size: 1rem;
+  margin: 0 10px;
+}
+
+.chat-footer input:focus {
+  border-color: #128c7e;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: #128c7e;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.icon-btn:hover {
+  color: #0d6d5b;
+}
+
+.icon-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}

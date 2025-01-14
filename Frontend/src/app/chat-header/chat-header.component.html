@@ -1,0 +1,43 @@
+<div class="chat-header">
+  <!-- Profile Info on Left Side -->
+  <div class="profile-info">
+    <img
+      src="https://www.w3schools.com/w3images/avatar2.png"
+      alt="Avatar"
+      class="avatar"
+    />
+    <div class="profile-details">
+      <h2>{{ title }}</h2>
+      <span class="status">{{ status }}</span>
+    </div>
+  </div>
+
+  <!-- Search Section: Search Button + Search Bar -->
+  <div class="search-container">
+    <!-- Search Button -->
+    <button class="icon-button search-button" (click)="toggleSearch()">
+      <i class="fa fa-search"></i>
+    </button>
+
+    <!-- Search Bar (Appears next to the search icon) -->
+    <div *ngIf="isSearchActive" class="search-bar">
+      <!-- Search input field with [value] and (input) binding -->
+      <input
+        type="text"
+        placeholder="Search..."
+        [value]="searchQuery"
+        (input)="onSearchChange($event)"
+      />
+
+      <!-- Up Arrow Icon (optional) -->
+      <button class="search-icon-button">
+        <i class="fa fa-chevron-up"></i>
+      </button>
+
+      <!-- Down Arrow Icon (optional) -->
+      <button class="search-icon-button">
+        <i class="fa fa-chevron-down"></i>
+      </button>
+    </div>
+  </div>
+</div>

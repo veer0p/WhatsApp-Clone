@@ -1,0 +1,36 @@
+/* Styling for chat messages */
+.message {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.from-you {
+  justify-content: flex-end;
+}
+
+.from-other {
+  justify-content: flex-start;
+}
+
+.message-text {
+  max-width: 75%;
+  padding: 10px;
+  border-radius: 15px;
+  background-color: #e1f5fe;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.from-you .message-text {
+  background-color: #d1f8e3; /* Greenish for "You" */
+}
+
+.from-other .message-text {
+  background-color: #f1f1f1; /* Light gray for the other user */
+}
+
+.message-user {
+  font-weight: bold;
+  margin-right: 5px;
+}

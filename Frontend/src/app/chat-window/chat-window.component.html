@@ -1,0 +1,17 @@
+<div class="chat-window">
+  <app-chat-header (searchResults)="onSearchResults($event)"></app-chat-header>
+
+  <!-- Messages area with "Load More" buttons inside -->
+  <div class="messages">
+    <!-- Load More button at the top of the messages area -->
+    <button class="load-more-button">Load More</button>
+
+    <!-- Display messages dynamically -->
+    <app-chat-body [messages]="messages"></app-chat-body>
+
+    <!-- Load More button at the bottom of the messages area -->
+    <button class="load-more-button">Load More</button>
+  </div>
+
+  <app-chat-footer (sendMessageEvent)="onMessageSent($event)"></app-chat-footer>
+</div>

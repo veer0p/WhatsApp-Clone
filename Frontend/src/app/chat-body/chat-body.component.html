@@ -1,0 +1,30 @@
+<div class="chat-body">
+  <!-- Loop through fetchedMessages and display the chat data -->
+  <div *ngFor="let chat of fetchedMessages">
+    <!-- Display chat date in the center -->
+    <div class="chat-date">{{ chat.date }}</div>
+
+    <!-- Loop through messages within each chat -->
+    <div *ngFor="let message of chat.messages">
+      <!-- Sent message (You) -->
+      <div *ngIf="message.sender" class="message from-you">
+        <div class="message-text">
+          <div class="message-content">{{ message.content }}</div>
+          <div class="message-time sender-time">
+            {{ formatTime(message.time) }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Received message (Other user) -->
+      <div *ngIf="!message.sender" class="message from-other">
+        <div class="message-text">
+          <div class="message-content">{{ message.content }}</div>
+          <div class="message-time receiver-time">
+            {{ formatTime(message.time) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

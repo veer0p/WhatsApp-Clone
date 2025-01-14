@@ -1,0 +1,12 @@
+<div
+  class="message"
+  [ngClass]="{
+    'from-you': message.user === 'You',
+    'from-other': message.user !== 'You'
+  }"
+>
+  <div class="message-text">
+    <span class="message-user">{{ message.user }}:</span>
+    <p>{{ message.text }}</p>
+  </div>
+</div>
