@@ -38,77 +38,159 @@ app.use(express.json());
 app.use(cors()); // Enable CORS for frontend requests
 
 // **Search API**
-app.get("/chats/search", async (req, res) => {
-  const query = req.query.q;
-  if (!query) {
-    return res.status(400).json({ error: "Search query (q) is required" });
-  }
 
-  const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
-  const endDate = req.query.endDate ? new Date(req.query.endDate) : new Date();
+// app.get("/chats/search", async (req, res) => {
+//   const query = req.query.q;
+//   if (!query) {
+//     return res.status(400).json({ error: "Search query (q) is required" });
+//   }
+
+//   const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+//   const endDate = req.query.endDate ? new Date(req.query.endDate) : new Date();
+
+//   try {
+//     const exactMatchRegex = `\\b${query}\\b`; // Exact match regex
+//     const partialMatchRegex = query; // Partial match regex
+
+//     const pipeline = [
+//       { $unwind: "$messages" },
+//       {
+//         $match: {
+//           $or: [
+//             { "messages.content": { $regex: exactMatchRegex, $options: "i" } },
+//             {
+//               "messages.content": { $regex: partialMatchRegex, $options: "i" },
+//             },
+//           ],
+//           ...(startDate && endDate
+//             ? { date: { $gte: startDate, $lte: endDate } }
+//             : {}),
+//         },
+//       },
+//       {
+//         $project: {
+//           _id: 0,
+//           date: 1,
+//           sender: "$messages.sender",
+//           content: "$messages.content",
+//           time: "$messages.time",
+//         },
+//       },
+//       { $sort: { date: -1 } },
+//     ];
+
+//     const results = await Message.aggregate(pipeline);
+
+//     // Format and group results in a single step
+//     const groupedResults = results.reduce((acc, message) => {
+//       const date = new Date(message.date).toISOString().split("T")[0];
+//       if (!acc[date]) {
+//         acc[date] = [];
+//       }
+//       acc[date].push({
+//         sender: message.sender,
+//         content: message.content.replace(
+//           new RegExp(query, "ig"),
+//           (match) => `<mark>${match}</mark>`
+//         ),
+//         time: message.time,
+//         highlighted: true,
+//       });
+//       return acc;
+//     }, {});
+
+//     const response = {
+//       total_matches: results.length,
+//       chats: Object.entries(groupedResults).map(([date, messages]) => ({
+//         date,
+//         messages: messages.sort((a, b) => a.time.localeCompare(b.time)),
+//       })),
+//     };
+
+//     res.json(response);
+//   } catch (error) {
+//     console.error("Error performing search:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+
+app.get("/chats/search", async (req, res) => {
+  const query = req.query.q; // Search query string
+  const startDateString = req.query.startDate; // Start date in string format (YYYY-MM-DD)
 
   try {
-    const exactMatchRegex = `\\b${query}\\b`; // Exact match regex
-    const partialMatchRegex = query; // Partial match regex
+    // Validate startDateString format
+    if (startDateString && !/^\d{4}-\d{2}-\d{2}$/.test(startDateString)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid startDate format. Use YYYY-MM-DD." });
+    }
 
+    // Build match conditions
+    const matchConditions = {};
+    if (startDateString) {
+      matchConditions.date = { $gte: startDateString, $lte: startDateString };
+    }
+    if (query) {
+      matchConditions["messages.content"] = { $regex: query, $options: "i" }; // Case-insensitive search
+    }
+
+    // Fetch data from the database
     const pipeline = [
-      { $unwind: "$messages" },
-      {
-        $match: {
-          $or: [
-            { "messages.content": { $regex: exactMatchRegex, $options: "i" } },
-            {
-              "messages.content": { $regex: partialMatchRegex, $options: "i" },
-            },
-          ],
-          ...(startDate && endDate
-            ? { date: { $gte: startDate, $lte: endDate } }
-            : {}),
-        },
-      },
+      { $unwind: "$messages" }, // Flatten messages array
+      { $match: matchConditions }, // Apply match conditions
       {
         $project: {
-          _id: 0,
+          _id: 1, // Include `_id` for message IDs
           date: 1,
           sender: "$messages.sender",
           content: "$messages.content",
           time: "$messages.time",
         },
       },
-      { $sort: { date: -1 } },
+      { $sort: { _id: 1 } }, // Sort by `_id` in ascending order for proper pagination
     ];
 
     const results = await Message.aggregate(pipeline);
 
-    // Format and group results in a single step
+    // Determine `lastLoadedMessageId` and `firstLoadedMessageId`
+    const lastLoadedMessageId =
+      results.length > 0 ? results[results.length - 1]._id.toString() : null;
+    const firstLoadedMessageId =
+      results.length > 0 ? results[0]._id.toString() : null;
+
+    // Group results by date for better formatting
     const groupedResults = results.reduce((acc, message) => {
-      const date = new Date(message.date).toISOString().split("T")[0];
-      if (!acc[date]) {
-        acc[date] = [];
-      }
+      const date = message.date; // Use string date directly
+      if (!acc[date]) acc[date] = [];
       acc[date].push({
         sender: message.sender,
-        content: message.content.replace(
-          new RegExp(query, "ig"),
-          (match) => `<mark>${match}</mark>`
-        ),
+        content: query
+          ? message.content.replace(
+              new RegExp(query, "ig"),
+              (match) => `<mark>${match}</mark>`
+            ) // Highlight matched query
+          : message.content,
         time: message.time,
-        highlighted: true,
+        highlighted: !!query,
       });
       return acc;
     }, {});
 
+    // Format the final response
     const response = {
       total_matches: results.length,
       chats: Object.entries(groupedResults).map(([date, messages]) => ({
         date,
         messages: messages.sort((a, b) => a.time.localeCompare(b.time)),
       })),
+      lastLoadedMessageId,
+      firstLoadedMessageId,
     };
 
     res.json(response);
   } catch (error) {
-    console.error("Error performing search:", error);
+    console.error("Error in /chats/search API:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

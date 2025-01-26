@@ -29,6 +29,12 @@
         <button class="search-icon-button">
           <i class="fa fa-chevron-down"></i>
         </button>
+
+        <!-- Calendar Icon Button -->
+
+        <button (click)="openCalendar()" class="calendar-icon-button">
+          <i class="fa fa-calendar"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -36,32 +42,55 @@
   <!-- Chat Body -->
   <div class="messages">
     <div class="chat-container" #chatContainer>
-      <!-- <button class="load-more-button" (click)="loadOlderMessages()">
+      <div>
+        <!-- Calendar Date Picker -->
+        <input
+          matInput
+          [matDatepicker]="picker"
+          placeholder="Select a date"
+          style="display: none"
+          (dateChange)="onDateChange($event)" />
+        <mat-datepicker #picker startView="month"></mat-datepicker>
+      </div>
+      <button class="load-more-button" (click)="loadOlderMessages()">
         Load More
-      </button> -->
+      </button>
       <!-- Load older messages -->
+      <div
+        *ngIf="fetchedMessages.length === 0 && !isFetchingMessages"
+        class="no-chats">
+        No chats available
+      </div>
 
-      <div *ngFor="let chat of fetchedMessages">
-        <div class="chat-date">{{ chat.date }}</div>
-        <div *ngFor="let message of chat.messages">
-          <div *ngIf="message.sender" class="message from-you">
-            <div class="message-text">
-              <div class="message-content">{{ message.content }}</div>
-              <div class="message-time">{{ formatTime(message.time) }}</div>
+      <div *ngIf="fetchedMessages.length !== 0">
+        <div *ngFor="let chat of fetchedMessages">
+          <div class="chat-date">{{ getFormattedDate(chat.date) }}</div>
+          <div *ngFor="let message of chat.messages">
+            <div *ngIf="message.sender" class="message from-you">
+              <div class="message-text">
+                <div
+                  class="message-content"
+                  [innerHTML]="sanitizeHtml(message.content)"></div>
+
+                <div class="message-time">{{ formatTime(message.time) }}</div>
+              </div>
             </div>
-          </div>
 
-          <div *ngIf="!message.sender" class="message from-other">
-            <div class="message-text">
-              <div class="message-content">{{ message.content }}</div>
-              <div class="message-time">{{ formatTime(message.time) }}</div>
+            <div *ngIf="!message.sender" class="message from-other">
+              <div class="message-text">
+                <div
+                  class="message-content"
+                  [innerHTML]="sanitizeHtml(message.content)"></div>
+
+                <div class="message-time">{{ formatTime(message.time) }}</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <!-- <button class="load-more-button" (click)="loadNewerMessages()">
+      <button class="load-more-button" (click)="loadNewerMessages()">
         Load More
-      </button> -->
+      </button>
       <!-- Load newer messages -->
     </div>
     <!-- Scroll to Bottom Button -->

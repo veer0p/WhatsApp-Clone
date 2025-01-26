@@ -8,8 +8,28 @@ import {
   OnInit,
   AfterViewInit,
 } from "@angular/core";
-import { HttpClient, HttpClientModule } from "@angular/common/http";
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
+import {
+  NgbDate,
+  NgbDatepicker,
+  NgbDatepickerModule,
+} from "@ng-bootstrap/ng-bootstrap";
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
+import { HttpClient, HttpClientModule } from "@angular/common/http";
+import {
+  MatDatepicker,
+  MatDatepickerModule,
+} from "@angular/material/datepicker";
+import { MatInputModule } from "@angular/material/input";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import {
+  MatNativeDateModule,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+} from "@angular/material/core";
+import { DateAdapter, NativeDateAdapter } from "@angular/material/core";
+import { MatDatepickerInputEvent } from "@angular/material/datepicker";
 
 interface Message {
   _id: string | null;
@@ -24,46 +44,83 @@ interface Chat {
   messages: Message[];
 }
 
+export const MY_DATE_FORMATS = {
+  parse: { dateInput: "MM/DD/YYYY" },
+  display: {
+    dateInput: "MM/DD/YYYY",
+    monthYearLabel: "MMM YYYY",
+    dateA11yLabel: "LL",
+    monthYearA11yLabel: "MMMM YYYY",
+  },
+};
+
 @Component({
   selector: "app-chat",
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [
+    CommonModule,
+    NgbDatepickerModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+    MatDatepickerModule,
+    MatInputModule,
+    MatFormFieldModule,
+  ],
+  providers: [
+    { provide: DateAdapter, useClass: NativeDateAdapter },
+    { provide: MAT_DATE_LOCALE, useValue: "en-US" },
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
+  ],
   templateUrl: "./chat.component.html",
   styleUrls: ["./chat.component.css"],
 })
 export class ChatComponent implements OnInit, AfterViewInit {
-  // Chat header properties
+  getFormattedDate(date: any) {
+    const d = new Date(date);
+    const day = ("0" + d.getDate()).slice(-2); // Adds leading zero to day if less than 10
+    const month = ("0" + (d.getMonth() + 1)).slice(-2); // Adds leading zero to month if less than 10
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+  @ViewChild(MatDatepicker) datepicker: MatDatepicker<any> | undefined;
+
+  selectedDate: any = null;
+  dateControl: FormControl = new FormControl();
+
   title: string = "Bn 👻";
   status: string = "Online";
   isSearchActive: boolean = false;
-  searchQuery: string = ""; // Holds the current search query
+  searchQuery: string = "";
   @Output() searchResults: EventEmitter<any> = new EventEmitter<any>();
 
-  // Chat body properties
   @Input() messages: Message[] = [];
   @ViewChild("chatContainer") chatContainer!: ElementRef;
   fetchedMessages: Chat[] = [];
-  lastLoadedMessageId: string | null = null; // Tracks the last loaded message ID
-  firstLoadedMessageId: string | null = null; // Tracks the first loaded message ID
-  isFetchingMessages: boolean = false; // Prevent overlapping requests
+  lastLoadedMessageId: string | null = null;
+  firstLoadedMessageId: string | null = null;
+  isFetchingMessages: boolean = false;
 
-  // Chat footer properties
   message: string = "";
   @Output() sendMessageEvent = new EventEmitter<string>();
 
-  private searchDebounceTimer: any; // Timer for debounce
-  isAtBottom: boolean = false; // Track if the user is at the bottom of the chat container
-  previousScrollTop: number = 0; // For preserving scroll position
+  private searchDebounceTimer: any;
+  isAtBottom: boolean = false;
+  previousScrollTop: number = 0;
+  isCalendarOpen = false;
+  calendarControl = new FormControl();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
   ngOnInit() {
     this.fetchInitialMessages();
   }
 
+  sanitizeHtml(content: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(content);
+  }
+
   ngAfterViewInit() {
     this.scrollToBottom();
-    // Add scroll event listener
     this.chatContainer.nativeElement.addEventListener(
       "scroll",
       this.onScroll.bind(this)
@@ -71,11 +128,36 @@ export class ChatComponent implements OnInit, AfterViewInit {
   }
 
   ngOnDestroy() {
-    // Clean up event listener when the component is destroyed
     this.chatContainer.nativeElement.removeEventListener(
       "scroll",
       this.onScroll.bind(this)
     );
+  }
+
+  onDateChange(event: MatDatepickerInputEvent<Date>) {
+    if (event.value) {
+      // Ensure the selected date is set to midnight (local timezone)
+      const localDate = event.value;
+      this.selectedDate = new Date(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate(),
+        0,
+        0,
+        0
+      );
+
+      console.log("Selected Date:", this.selectedDate);
+
+      // Trigger search after date selection
+      this.searchChats();
+    }
+  }
+
+  openCalendar() {
+    if (this.datepicker) {
+      this.datepicker.open();
+    }
   }
 
   onScroll() {
@@ -84,25 +166,22 @@ export class ChatComponent implements OnInit, AfterViewInit {
     const scrollHeight = chatContainerElement.scrollHeight;
     const clientHeight = chatContainerElement.clientHeight;
 
-    // Detect if the user is at the bottom
     this.isAtBottom = scrollTop + clientHeight === scrollHeight;
 
-    // Detect when the user is at the top of the chat container
     if (
       scrollTop === 0 &&
       !this.isFetchingMessages &&
       this.lastLoadedMessageId
     ) {
-      this.loadOlderMessages();
+      // this.loadOlderMessages();
     }
 
-    // Detect when the user is at the bottom of the chat container
     if (
       scrollTop + clientHeight === scrollHeight &&
       !this.isFetchingMessages &&
       this.firstLoadedMessageId
     ) {
-      this.loadNewerMessages();
+      // this.loadNewerMessages();
     }
   }
 
@@ -110,14 +189,13 @@ export class ChatComponent implements OnInit, AfterViewInit {
     const [hours, minutes] = time.split(":");
     let hours12 = parseInt(hours, 10);
     const ampm = hours12 >= 12 ? "PM" : "AM";
-    hours12 = hours12 % 12;
-    if (hours12 === 0) hours12 = 12; // Handle 12 AM/PM
+    hours12 = hours12 % 12 || 12;
     return `${hours12}:${minutes} ${ampm}`;
   }
 
   scrollToBottom() {
-    if (this.chatContainer?.nativeElement) {
-      const container = this.chatContainer.nativeElement;
+    const container = this.chatContainer?.nativeElement;
+    if (container) {
       container.scrollTop = container.scrollHeight;
     }
   }
@@ -144,7 +222,6 @@ export class ChatComponent implements OnInit, AfterViewInit {
   loadOlderMessages() {
     if (!this.lastLoadedMessageId || this.isFetchingMessages) return;
 
-    // Save the current scroll position before loading older messages
     const chatContainerElement = this.chatContainer.nativeElement;
     const previousScrollTop = chatContainerElement.scrollTop;
     const previousScrollHeight = chatContainerElement.scrollHeight;
@@ -162,14 +239,10 @@ export class ChatComponent implements OnInit, AfterViewInit {
             this.fetchedMessages = [...olderChats, ...this.fetchedMessages];
             this.lastLoadedMessageId = response.lastLoadedMessageId;
           }
-
-          // After loading older messages, restore the scroll position
           setTimeout(() => {
             const newScrollHeight = chatContainerElement.scrollHeight;
-            const scrollDelta = newScrollHeight - previousScrollHeight;
-
-            // Adjust the scroll position to maintain the user's relative position
-            chatContainerElement.scrollTop = previousScrollTop + scrollDelta;
+            chatContainerElement.scrollTop =
+              previousScrollTop + (newScrollHeight - previousScrollHeight);
           }, 0);
         },
         (error) => {
@@ -182,10 +255,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
   loadNewerMessages() {
     if (!this.firstLoadedMessageId || this.isFetchingMessages) return;
 
-    // Save the current scroll position before loading newer messages
     const chatContainerElement = this.chatContainer.nativeElement;
-    const previousScrollTop = chatContainerElement.scrollTop;
-    const previousScrollHeight = chatContainerElement.scrollHeight;
 
     this.isFetchingMessages = true;
     this.http
@@ -200,24 +270,6 @@ export class ChatComponent implements OnInit, AfterViewInit {
             this.fetchedMessages = [...this.fetchedMessages, ...newerChats];
             this.firstLoadedMessageId = response.firstLoadedMessageId;
           }
-
-          // After loading newer messages, restore the scroll position
-          setTimeout(() => {
-            const newScrollHeight = chatContainerElement.scrollHeight;
-            const scrollDelta = newScrollHeight - previousScrollHeight;
-
-            // If the user was at the bottom before loading, scroll to the bottom
-            if (
-              previousScrollTop + chatContainerElement.clientHeight ===
-              previousScrollHeight
-            ) {
-              chatContainerElement.scrollTop =
-                chatContainerElement.scrollHeight;
-            } else {
-              // Adjust the scroll position to maintain the user's relative position
-              chatContainerElement.scrollTop = previousScrollTop + scrollDelta;
-            }
-          }, 0);
         },
         (error) => {
           this.isFetchingMessages = false;
@@ -226,54 +278,78 @@ export class ChatComponent implements OnInit, AfterViewInit {
       );
   }
 
-  // Methods for header search functionality
   toggleSearch(): void {
     this.isSearchActive = !this.isSearchActive;
-    this.searchQuery = "";
-    this.searchResults.emit([]); // Emit empty results when search is toggled off
+
+    if (!this.isSearchActive) {
+      // Reset search query and selected date
+      this.searchQuery = "";
+      this.selectedDate = null;
+
+      // Emit an empty search result to clear the current view
+      this.searchResults.emit([]);
+
+      // Fetch initial messages to reset the chat
+      this.fetchInitialMessages();
+    }
+  }
+
+  searchChats(): void {
+    const formattedDate = this.selectedDate
+      ? this.selectedDate.toISOString().split("T")[0] // Only the date part (YYYY-MM-DD)
+      : null;
+
+    let apiUrl = `http://localhost:3000/chats/search?`;
+    if (this.searchQuery) {
+      apiUrl += `q=${encodeURIComponent(this.searchQuery)}&`;
+    }
+    if (formattedDate) {
+      apiUrl += `startDate=${formattedDate}`;
+    }
+
+    this.http.get(apiUrl).subscribe(
+      (response: any) => {
+        // Handle response with lastLoadedMessageId and firstLoadedMessageId
+        this.searchResults.emit(response.chats);
+        this.fetchedMessages = response.chats;
+
+        if (response.lastLoadedMessageId) {
+          this.lastLoadedMessageId = response.lastLoadedMessageId;
+        }
+        if (response.firstLoadedMessageId) {
+          this.firstLoadedMessageId = response.firstLoadedMessageId;
+        }
+
+        console.log("Search Results:", response);
+      },
+      (error) => {
+        console.error("Error during search:", error);
+      }
+    );
   }
 
   onSearchChange(event: any): void {
     this.searchQuery = event.target.value;
 
-    // Clear the previous debounce timer
-    if (this.searchDebounceTimer) {
-      clearTimeout(this.searchDebounceTimer);
-    }
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
 
-    // Set a new debounce timer
     this.searchDebounceTimer = setTimeout(() => {
-      if (this.searchQuery.trim()) {
+      if (this.searchQuery.trim() || this.selectedDate) {
         this.searchChats();
       } else {
         this.fetchInitialMessages();
       }
-    }, 300); // Delay of 300ms
+    }, 300);
   }
 
-  searchChats(): void {
-    this.http
-      .get(`http://localhost:3000/chats/search?q=${this.searchQuery}`)
-      .subscribe(
-        (response: any) => {
-          this.searchResults.emit(response.chats);
-          this.fetchedMessages = response.chats;
-        },
-        (error) => {
-          console.error("Error during search:", error);
-        }
-      );
-  }
-
-  // Footer methods for sending messages
   onInputChange(event: any) {
     this.message = event.target.value;
   }
 
   sendMessage() {
     if (this.message.trim()) {
-      this.sendMessageEvent.emit(this.message); // Emit the message to the parent
-      this.message = ""; // Clear the input after sending the message
+      this.sendMessageEvent.emit(this.message);
+      this.message = "";
     }
   }
 
@@ -281,10 +357,6 @@ export class ChatComponent implements OnInit, AfterViewInit {
     if (event.key === "Enter") {
       this.sendMessage();
     }
-  }
-
-  onMessageSent(message: string) {
-    this.addMessage(message);
   }
 
   addMessage(message: string) {
@@ -297,7 +369,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
         highlighted: false,
         _id: null,
       });
-      setTimeout(() => this.scrollToBottom(), 0); // Scroll after DOM updates
+      setTimeout(() => this.scrollToBottom(), 0);
     }
   }
 }
