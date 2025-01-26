@@ -242,6 +242,10 @@ app.get("/chats", async (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("Hello, server is live!");
+});
+
 // Start the server
 
 app.listen(port, () => {
