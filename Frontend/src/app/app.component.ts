@@ -1,15 +1,14 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { ChatMessageComponent } from './chat-message/chat-message.component';
-import { ChatWindowComponent } from './chat-window/chat-window.component';
+import { Component } from "@angular/core";
+import { RouterOutlet } from "@angular/router";
+import { ChatComponent } from "./chat/chat.component";
 
 @Component({
-  selector: 'app-root',
+  selector: "app-root",
   standalone: true,
-  imports: [RouterOutlet, ChatMessageComponent, ChatWindowComponent],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  imports: [RouterOutlet, ChatComponent],
+  templateUrl: "./app.component.html",
+  styleUrl: "./app.component.css",
 })
 export class AppComponent {
-  title = 'Frontend';
+  title = "Frontend";
 }

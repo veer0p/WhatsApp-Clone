@@ -125,7 +125,7 @@ app.get("/chats", async (req, res) => {
       query["messages.time"] = { $gt: new Date(firstTimestamp) }; // Fetch older messages
     }
 
-    const chats = await Message.find(query).sort({ date: -1 }).limit(30);
+    const chats = await Message.find(query).sort({ date: -1 }).limit(50);
 
     const allMessages = chats.flatMap((chat) => {
       chat.messages.sort((a, b) => b.time.localeCompare(a.time));

@@ -1,0 +1,422 @@
+/* Container for chat window */
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full height */
+  max-width: 500px;
+  margin: auto;
+  background-color: #e5ddd5;
+  border-radius: 10px;
+  font-family: Arial, sans-serif;
+  overflow: hidden; /* Prevents scrolling of entire window */
+}
+
+/* Header styles */
+.header {
+  background-color: #075e54;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  background-color: #128c7e; /* Updated header background */
+  font-weight: bold;
+}
+
+/* Chat message container (scrollable area) */
+.messages {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-left: 4px;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: calc(100vh - 120px); /* Adjust height based on header/footer */
+  position: relative;
+}
+
+/* Load More buttons container (fixed within the message area) */
+.load-more-button {
+  padding: 10px 20px;
+  background-color: #128c7e;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+  margin: 10px 0;
+  align-self: center;
+}
+
+.load-more-button:hover {
+  background-color: #0d6d5b;
+}
+
+.load-more-button:disabled {
+  background-color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Input area at the bottom */
+.input-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #fff;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-top: 1px solid #ccc;
+}
+
+/* Message input field */
+.input-container input {
+  width: 85%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+}
+
+.input-container button {
+  width: 10%;
+  background-color: #075e54;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.input-container button mat-icon {
+  font-size: 24px;
+  color: white;
+}
+
+/* Responsiveness */
+@media (max-width: 600px) {
+  .chat-window {
+    width: 100%;
+  }
+  .header h3 {
+    font-size: 18px;
+  }
+  .input-container input {
+    font-size: 12px;
+  }
+}
+
+/* Styling for chat messages */
+.message {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.from-you {
+  justify-content: flex-end;
+}
+
+.from-other {
+  justify-content: flex-start;
+}
+
+.message-text {
+  max-width: 75%;
+  padding: 10px;
+  border-radius: 15px;
+  background-color: #e1f5fe;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.from-you .message-text {
+  background-color: #d1f8e3; /* Greenish for "You" */
+}
+
+.from-other .message-text {
+  background-color: #f1f1f1; /* Light gray for the other user */
+}
+
+.message-user {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+/* Container for the header */
+.chat-header {
+  background: #128c7e;
+  color: #ffffff;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  height: 60px; /* Fixed height for the header to prevent any height change */
+}
+
+/* Profile section (avatar + name + status) aligned to the left */
+.profile-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Align left */
+  flex: 1;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profile-details h2 {
+  margin: 0;
+  width: 100px;
+  font-size: 1.1rem;
+}
+
+.status {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+/* Search Section: Container for both Search Button and Search Bar */
+.search-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%; /* Ensures that the search bar doesn't affect the layout */
+  justify-content: flex-end; /* Aligns the search icon to the right */
+}
+
+/* Search Button */
+.icon-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.5rem;
+  position: absolute; /* Keeps the search icon in place */
+  right: 0;
+  z-index: 10; /* Ensures the icon is above the search bar */
+}
+
+/* Search Bar (appears next to the search icon) */
+.search-bar {
+  display: flex;
+  align-items: center;
+  margin-left: 10px; /* Space between the search button and search bar */
+  width: 250px; /* Fixed width for the search bar */
+  background-color: #ffffff;
+  border-radius: 20px; /* Make the search bar rounded */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 5px 10px;
+  position: absolute;
+  right: 40px; /* Ensure it starts just to the left of the icon */
+}
+
+/* Styling for the search input */
+.search-bar input {
+  border: none;
+  padding: 8px 15px;
+  font-size: 1rem;
+  width: 80%;
+  border-radius: 15px;
+  transition: box-shadow 0.3s ease, transform 0.2s ease; /* Smooth transition */
+}
+
+/* When focused, add a subtle shadow and scale effect */
+.search-bar input:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(18, 140, 126, 0.5);
+  transform: scale(1.05); /* Slightly scale up the input */
+}
+
+/* Up and Down Arrow Buttons */
+.search-icon-button {
+  background: none;
+  border: none;
+  color: #128c7e;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 5px;
+}
+
+.search-icon-button i {
+  font-size: 1.2rem;
+}
+
+/* Optional: Focused Search Bar Styles */
+.search-bar input:focus {
+  box-shadow: 0 0 5px rgba(18, 140, 126, 0.5);
+}
+
+.chat-footer {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #ffffff;
+  border-top: 1px solid #ddd;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-size: 1rem;
+  margin: 0 10px;
+}
+
+.chat-footer input:focus {
+  border-color: #128c7e;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: #128c7e;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.icon-btn:hover {
+  color: #0d6d5b;
+}
+
+.icon-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Styling for chat date */
+.chat-date {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #555;
+  text-align: center;
+  margin: 20px 0;
+  background-color: #e1f5fe; /* Light blue */
+  padding: 8px;
+  border-radius: 10px;
+}
+
+/* Message container */
+.message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  gap: 5px;
+}
+
+/* Aligning sent and received messages */
+.from-you {
+  align-items: flex-end; /* Sent messages on the right */
+}
+
+.from-other {
+  align-items: flex-start; /* Received messages on the left */
+}
+
+/* Styling for message text */
+.message-text {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 16px;
+  background-color: transparent; /* No white background */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+  word-wrap: break-word;
+  position: relative; /* Make sure time stays inside the message container */
+}
+
+/* Sent message styling */
+.from-you .message-text {
+  background-color: #dcf8c6; /* Light green for sent messages */
+}
+
+/* Received message styling */
+.from-other .message-text {
+  background-color: #f1f1f1; /* Light gray for received messages */
+}
+
+/* Styling for message time */
+.message-time {
+  font-size: 0.7rem; /* Smaller time text */
+  color: #888; /* Light gray color */
+  margin-top: 5px; /* Add spacing between message content and time */
+  align-self: flex-end; /* Align time for sent messages to the right */
+}
+
+/* For sender's time (align right) */
+.from-you .message-time {
+  align-self: flex-end; /* Right-align time for sent messages */
+}
+
+/* For receiver's time (align left) */
+.from-other .message-time {
+  align-self: flex-start; /* Left-align time for received messages */
+}
+
+/* Styling for message content */
+.message-content {
+  margin-bottom: 5px;
+}
+
+/* Styling for message user name */
+.message-user {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+/* For the chat container */
+.chat-container {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: #888 transparent; /* Thumb color and track color */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* For WebKit browsers (Chrome, Edge, Safari) */
+.chat-container::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.chat-container::-webkit-scrollbar-track {
+  background: transparent; /* Background of the scrollbar track */
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  background-color: #888; /* Thumb color */
+  border-radius: 4px; /* Rounded corners for a modern look */
+  border: 2px solid transparent; /* Optional: Adds some spacing around the thumb */
+}
+
+.chat-container::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker thumb color on hover */
+}
