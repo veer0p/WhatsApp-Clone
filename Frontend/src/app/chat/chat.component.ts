@@ -202,21 +202,23 @@ export class ChatComponent implements OnInit, AfterViewInit {
 
   fetchInitialMessages() {
     this.isFetchingMessages = true;
-    this.http.get(`http://localhost:3000/chats?direction=older`).subscribe(
-      (response: any) => {
-        this.isFetchingMessages = false;
-        this.fetchedMessages = response.chats;
-        if (this.fetchedMessages.length > 0) {
-          this.lastLoadedMessageId = response.lastLoadedMessageId;
-          this.firstLoadedMessageId = response.firstLoadedMessageId;
-          setTimeout(() => this.scrollToBottom(), 0);
+    this.http
+      .get(`https://whatsapp-backend-phi.vercel.app/chats?direction=older`)
+      .subscribe(
+        (response: any) => {
+          this.isFetchingMessages = false;
+          this.fetchedMessages = response.chats;
+          if (this.fetchedMessages.length > 0) {
+            this.lastLoadedMessageId = response.lastLoadedMessageId;
+            this.firstLoadedMessageId = response.firstLoadedMessageId;
+            setTimeout(() => this.scrollToBottom(), 0);
+          }
+        },
+        (error) => {
+          this.isFetchingMessages = false;
+          console.error("Error fetching messages:", error);
         }
-      },
-      (error) => {
-        this.isFetchingMessages = false;
-        console.error("Error fetching messages:", error);
-      }
-    );
+      );
   }
 
   loadOlderMessages() {
@@ -229,7 +231,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
     this.isFetchingMessages = true;
     this.http
       .get(
-        `http://localhost:3000/chats?lastMessageId=${this.lastLoadedMessageId}&direction=older`
+        `https://whatsapp-backend-phi.vercel.app/chats?lastMessageId=${this.lastLoadedMessageId}&direction=older`
       )
       .subscribe(
         (response: any) => {
@@ -260,7 +262,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
     this.isFetchingMessages = true;
     this.http
       .get(
-        `http://localhost:3000/chats?lastMessageId=${this.firstLoadedMessageId}&direction=newer`
+        `https://whatsapp-backend-phi.vercel.app/chats?lastMessageId=${this.firstLoadedMessageId}&direction=newer`
       )
       .subscribe(
         (response: any) => {
@@ -299,7 +301,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
       ? this.selectedDate.toISOString().split("T")[0] // Only the date part (YYYY-MM-DD)
       : null;
 
-    let apiUrl = `http://localhost:3000/chats/search?`;
+    let apiUrl = `https://whatsapp-backend-phi.vercel.app/chats/search?`;
     if (this.searchQuery) {
       apiUrl += `q=${encodeURIComponent(this.searchQuery)}&`;
     }
