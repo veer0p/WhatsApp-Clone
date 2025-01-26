@@ -36,7 +36,10 @@
   <!-- Chat Body -->
   <div class="messages">
     <div class="chat-container" #chatContainer>
-      <button class="load-more-button">Load More</button>
+      <!-- <button class="load-more-button" (click)="loadOlderMessages()">
+        Load More
+      </button> -->
+      <!-- Load older messages -->
 
       <div *ngFor="let chat of fetchedMessages">
         <div class="chat-date">{{ chat.date }}</div>
@@ -56,8 +59,19 @@
           </div>
         </div>
       </div>
-      <button class="load-more-button">Load More</button>
+      <!-- <button class="load-more-button" (click)="loadNewerMessages()">
+        Load More
+      </button> -->
+      <!-- Load newer messages -->
     </div>
+    <!-- Scroll to Bottom Button -->
+    <button
+      *ngIf="!isAtBottom"
+      class="scroll-to-bottom-btn"
+      (click)="scrollToBottom()"
+      aria-label="Scroll to Bottom">
+      <i class="fas fa-arrow-down"></i>
+    </button>
   </div>
 
   <!-- Chat Footer -->

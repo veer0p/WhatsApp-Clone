@@ -420,3 +420,25 @@
 .chat-container::-webkit-scrollbar-thumb:hover {
   background-color: #555; /* Darker thumb color on hover */
 }
+
+.chat-window {
+  position: relative;
+  height: 100%;
+}
+
+.scroll-to-bottom-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: rgba(30, 175, 55, 0.993);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.scroll-to-bottom-btn:hover {
+  background-color: rgba(40, 134, 56, 0.664);
+}

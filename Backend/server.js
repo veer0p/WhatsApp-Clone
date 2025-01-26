@@ -114,47 +114,43 @@ app.get("/chats/search", async (req, res) => {
 });
 
 app.get("/chats", async (req, res) => {
-  const { lastTimestamp, firstTimestamp } = req.query;
+  const { lastMessageId, direction } = req.query; // Direction can be 'newer' or 'older'
 
   try {
     const query = {};
 
-    if (lastTimestamp) {
-      query["messages.time"] = { $lt: new Date(lastTimestamp) }; // Fetch newer messages
-    } else if (firstTimestamp) {
-      query["messages.time"] = { $gt: new Date(firstTimestamp) }; // Fetch older messages
+    // Set the limit to 30 for the initial fetch
+    const limit = 1;
+
+    // Determine the sort order based on the direction
+    const sortOrder = direction === "older" ? -1 : 1; // Descending for 'older', Ascending for 'newer'
+
+    // Add condition for pagination based on lastMessageId
+    if (lastMessageId) {
+      query._id =
+        direction === "older"
+          ? { $lt: lastMessageId } // Load chats with _id less than lastMessageId
+          : { $gt: lastMessageId }; // Load chats with _id greater than lastMessageId
     }
 
-    const chats = await Message.find(query).sort({ date: -1 }).limit(50);
+    // Fetch chats sorted by _id and limited to 30 results
+    const chats = await Message.find(query)
+      .sort({ _id: sortOrder })
+      .limit(limit);
 
-    const allMessages = chats.flatMap((chat) => {
-      chat.messages.sort((a, b) => b.time.localeCompare(a.time));
-      return chat.messages.map((msg) => ({
-        date: chat.date.toISOString().split("T")[0],
-        sender: msg.sender,
-        content: msg.content,
-        time: msg.time,
-        highlighted: false,
-      }));
-    });
-
-    allMessages.sort((a, b) => b.time.localeCompare(a.time));
-
-    const latestChats = allMessages.slice(0, 30);
-
-    const groupedChats = latestChats.reduce((acc, message) => {
-      if (!acc[message.date]) {
-        acc[message.date] = [];
-      }
-      acc[message.date].push(message);
-      return acc;
-    }, {});
-
+    // Transform chats into the desired format
     const response = {
-      chats: Object.entries(groupedChats).map(([date, messages]) => ({
-        date,
-        messages: messages.sort((a, b) => a.time.localeCompare(b.time)),
+      chats: chats.map((chat) => ({
+        date: chat.date,
+        messages: chat.messages.map((msg) => ({
+          time: msg.time,
+          sender: msg.sender,
+          content: msg.content,
+          highlighted: false,
+        })),
       })),
+      lastLoadedMessageId: chats.length ? chats[chats.length - 1]._id : null, // Track the last loaded message ID for pagination
+      firstLoadedMessageId: chats.length ? chats[0]._id : null, // Track the first loaded message ID for pagination
     };
 
     res.json(response);
@@ -165,6 +161,7 @@ app.get("/chats", async (req, res) => {
 });
 
 // Start the server
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
